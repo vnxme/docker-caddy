@@ -26,5 +26,6 @@ docker buildx create --name builder --driver docker-container --bootstrap --use
 ```
 4. Build the container and push it to the registry with the following command
 ```
+git clone https://github.com/vnxme/docker-caddy-custom && cd ./docker-caddy-custom
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t vnxme/caddy-custom:latest --push .
 ```
