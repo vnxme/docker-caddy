@@ -1,6 +1,17 @@
 # docker-caddy-custom
  A custom build of Caddy with the following modules inside:
- - Cloudflare DNS
+ - [abiosoft/caddy-exec](https://github.com/abiosoft/caddy-exec)
+ - [aksdb/caddy-cgi/v2](https://github.com/aksdb/caddy-cgi)
+ - [caddy-dns/cloudflare](https://github.com/caddy-dns/cloudflare)
+ - [caddy-dns/route53](https://github.com/caddy-dns/route53)
+ - [greenpau/caddy-git](https://github.com/greenpau/caddy-git)
+ - [greenpau/caddy-security](https://github.com/greenpau/caddy-security)
+ - [greenpau/caddy-trace](https://github.com/greenpau/caddy-trace)
+ - [mholt/caddy-dynamicdns](https://github.com/mholt/caddy-dynamicdns)
+ - [mholt/caddy-events-exec](https://github.com/mholt/caddy-events-exec)
+ - [mholt/caddy-l4](https://github.com/mholt/caddy-l4)
+ - [mholt/caddy-ratelimit](https://github.com/mholt/caddy-ratelimit)
+ - [mholt/caddy-webdav](https://github.com/mholt/caddy-webdav)
 
 ### Build Environment
 1. Create a headless Debian from [the current AMD64 image](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/)
