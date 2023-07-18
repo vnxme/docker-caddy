@@ -1,6 +1,9 @@
 FROM --platform=$BUILDPLATFORM caddy:builder AS builder
 ARG TARGETOS TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build \
+RUN \
+  --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build \
   --with github.com/abiosoft/caddy-exec \
   --with github.com/aksdb/caddy-cgi/v2 \
   --with github.com/caddy-dns/cloudflare \
