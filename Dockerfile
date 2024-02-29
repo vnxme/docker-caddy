@@ -8,6 +8,7 @@ RUN \
   --with github.com/aksdb/caddy-cgi/v2@cddc18b229db3cbc3f45c472ad6a490a9b00f8d4 \
   --with github.com/caddy-dns/cloudflare@2fa0c8ac916ab13ee14c836e59fec9d85857e429 \
   --with github.com/caddy-dns/route53@8e49e7546771bf6846e1531dcaff4925af5ddcde \
+  --with github.com/dunglas/frankenphp/caddy@v1.1.0 \
   --with github.com/greenpau/caddy-git@v1.0.9 \
   --with github.com/greenpau/caddy-security@v1.1.23 \
   --with github.com/greenpau/caddy-trace@v1.1.13 \
