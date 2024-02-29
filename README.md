@@ -9,6 +9,7 @@ A set of [Docker images](https://hub.docker.com/r/vnxme/caddy) of Caddy for vari
 
  [Caddy Server](https://github.com/caddyserver/caddy) is built with the following modules inside:
  - [abiosoft/caddy-exec](https://github.com/abiosoft/caddy-exec)
+ - [aksdb/caddy-cgi](https://github.com/aksdb/caddy-cgi)
  - [caddy-dns/cloudflare](https://github.com/caddy-dns/cloudflare)
  - [caddy-dns/route53](https://github.com/caddy-dns/route53)
  - [greenpau/caddy-git](https://github.com/greenpau/caddy-git)

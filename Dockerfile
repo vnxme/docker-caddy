@@ -5,6 +5,7 @@ RUN \
   --mount=type=cache,target=/go/pkg \
   GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build v2.7.6 \
   --with github.com/abiosoft/caddy-exec@46a1d8879ee2d0e8762c35ee7f895bd8a7cf2116 \
+  --with github.com/aksdb/caddy-cgi/v2@cddc18b229db3cbc3f45c472ad6a490a9b00f8d4 \
   --with github.com/caddy-dns/cloudflare@2fa0c8ac916ab13ee14c836e59fec9d85857e429 \
   --with github.com/caddy-dns/route53@8e49e7546771bf6846e1531dcaff4925af5ddcde \
   --with github.com/greenpau/caddy-git@v1.0.9 \
