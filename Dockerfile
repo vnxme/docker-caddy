@@ -1,9 +1,23 @@
-FROM --platform=$BUILDPLATFORM caddy:builder AS builder
+FROM --platform=$BUILDPLATFORM caddy:builder AS xbuilder
+FROM --platform=$BUILDPLATFORM dunglas/frankenphp:latest-builder-alpine AS builder
+
+COPY --from=xbuilder /usr/bin/xcaddy /usr/bin/xcaddy
+
+# https://github.com/dunglas/frankenphp/blob/main/docs/compile.md
+# https://github.com/dunglas/frankenphp/issues/591
+ENV CGO_ENABLED=1 XCADDY_SETCAP=1
+ENV XCADDY_GO_BUILD_FLAGS="-buildmode=pie -ldflags '-w -s -extldflags \"-Wl,-z,stack-size=0x80000\"' -trimpath"
 ARG TARGETOS TARGETARCH
 RUN \
   --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg \
   GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build v2.8.4 \
+  --output /usr/local/bin/frankenphp \
+  --with github.com/dunglas/frankenphp@v1.2.1=./ \
+  --with github.com/dunglas/frankenphp/caddy@v1.2.1=./caddy/ \
+  --with github.com/dunglas/caddy-cbrotli@v1.0.0 \
+  --with github.com/dunglas/mercure/caddy@v0.16.2 \
+  --with github.com/dunglas/vulcain/caddy@v1.0.5 \
   --with github.com/abiosoft/caddy-exec@a42a5b2ae10fe60b6215489d56763fc9a9270a59 \
   --with github.com/aksdb/caddy-cgi/v2@cddc18b229db3cbc3f45c472ad6a490a9b00f8d4 \
   --with github.com/caddy-dns/cloudflare@d11ac0bfeab7475d8b89e2dc93f8c7a8b8859b8f \
@@ -20,5 +34,12 @@ RUN \
   --with github.com/mholt/caddy-webdav@0f2910d52a7ea15517a288a6f3f02a5e010da845 \
   --with github.com/WeidiDeng/caddy-cloudflare-ip@f53b62aa13cb7ad79c8b47aacc3f2f03989b67e5
 
-FROM caddy:latest
-COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+FROM dunglas/frankenphp:latest-alpine AS runner
+
+COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
+
+RUN install-php-extensions \
+  bcmath \
+  gd \
+  intl \
+  pdo_mysql
