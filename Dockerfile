@@ -9,6 +9,7 @@ RUN \
   --with github.com/caddy-dns/cloudflare@d11ac0bfeab7475d8b89e2dc93f8c7a8b8859b8f \
   --with github.com/caddy-dns/route53@8e49e7546771bf6846e1531dcaff4925af5ddcde \
   --with github.com/fvbommel/caddy-combine-ip-ranges@5624d08f5f9e788816bdd877b7c81280c69b434e \
+  --with github.com/fvbommel/caddy-dns-ip-range@6facda90c1f7c05ee4a5d8211acb7e50d09f5a71 \
   --with github.com/greenpau/caddy-git@v1.0.9 \
   --with github.com/greenpau/caddy-security@90049c80f2c048dfc1d493c221b9f53a1dca43d5 \
   --with github.com/greenpau/caddy-trace@v1.1.13 \
