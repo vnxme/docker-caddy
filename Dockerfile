@@ -15,7 +15,8 @@ RUN \
   --with github.com/mholt/caddy-events-exec@055bfd2e8b8247533c7a710e11301b7d1645c933 \
   --with github.com/mholt/caddy-l4@ce9789f602eb7de74472d6b15e945181b7bcfe4a \
   --with github.com/mholt/caddy-ratelimit@9f619ad46dbd1efd7799bcbfdfbc4a4cfaae948a \
-  --with github.com/mholt/caddy-webdav@0f2910d52a7ea15517a288a6f3f02a5e010da845
+  --with github.com/mholt/caddy-webdav@0f2910d52a7ea15517a288a6f3f02a5e010da845 \
+  --with github.com/WeidiDeng/caddy-cloudflare-ip@f53b62aa13cb7ad79c8b47aacc3f2f03989b67e5
 
 FROM caddy:latest
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

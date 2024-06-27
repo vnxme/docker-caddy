@@ -20,3 +20,4 @@ A set of [Docker images](https://hub.docker.com/r/vnxme/caddy) of Caddy for vari
  - [mholt/caddy-l4](https://github.com/mholt/caddy-l4)
  - [mholt/caddy-ratelimit](https://github.com/mholt/caddy-ratelimit)
  - [mholt/caddy-webdav](https://github.com/mholt/caddy-webdav)
+ - [WeidiDeng/caddy-cloudflare-ip](https://github.com/WeidiDeng/caddy-cloudflare-ip)
