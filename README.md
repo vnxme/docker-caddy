@@ -12,6 +12,7 @@ A set of [Docker images](https://hub.docker.com/r/vnxme/caddy) of Caddy for vari
  - [aksdb/caddy-cgi](https://github.com/aksdb/caddy-cgi)
  - [caddy-dns/cloudflare](https://github.com/caddy-dns/cloudflare)
  - [caddy-dns/route53](https://github.com/caddy-dns/route53)
+ - [fvbommel/caddy-combine-ip-ranges](https://github.com/fvbommel/caddy-combine-ip-ranges)
  - [greenpau/caddy-git](https://github.com/greenpau/caddy-git)
  - [greenpau/caddy-security](https://github.com/greenpau/caddy-security)
  - [greenpau/caddy-trace](https://github.com/greenpau/caddy-trace)
