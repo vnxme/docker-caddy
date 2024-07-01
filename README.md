@@ -4,8 +4,6 @@ A set of [Docker images](https://hub.docker.com/r/vnxme/caddy) of Caddy for vari
 - ARMv8 64-bit (linux/arm64/v8)
 - ARMv7 32-bit (linux/arm/v7)
 - ARMv6 32-bit (linux/arm/v6)
-- IBM POWER8 (linux/ppc64le)
-- IBM z Systems (linux/s390x)
 
  [Caddy Server](https://github.com/caddyserver/caddy) is built with the following modules inside:
  - [abiosoft/caddy-exec](https://github.com/abiosoft/caddy-exec)
