@@ -8,6 +8,7 @@ RUN \
   --with github.com/aksdb/caddy-cgi/v2@cddc18b229db3cbc3f45c472ad6a490a9b00f8d4 \
   --with github.com/caddy-dns/cloudflare@89f16b99c18ef49c8bb470a82f895bce01cbaece \
   --with github.com/caddy-dns/route53@cdab4f43673f4ab12b5dda1c6aef8d9de44f0c86 \
+  --with github.com/caddyserver/forwardproxy@02be81e69669fb6f2d69e852f58d6311635657c8 \
   --with github.com/fvbommel/caddy-combine-ip-ranges@5624d08f5f9e788816bdd877b7c81280c69b434e \
   --with github.com/fvbommel/caddy-dns-ip-range@6facda90c1f7c05ee4a5d8211acb7e50d09f5a71 \
   --with github.com/greenpau/caddy-git@v1.0.9 \

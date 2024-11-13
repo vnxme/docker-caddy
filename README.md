@@ -10,6 +10,7 @@ A set of [Docker images](https://hub.docker.com/r/vnxme/caddy) of Caddy for vari
  - [aksdb/caddy-cgi](https://github.com/aksdb/caddy-cgi)
  - [caddy-dns/cloudflare](https://github.com/caddy-dns/cloudflare)
  - [caddy-dns/route53](https://github.com/caddy-dns/route53)
+ - [caddyserver/forwardproxy](https://github.com/caddyserver/forwardproxy)
  - [fvbommel/caddy-combine-ip-ranges](https://github.com/fvbommel/caddy-combine-ip-ranges)
  - [fvbommel/caddy-dns-ip-range](https://github.com/fvbommel/caddy-dns-ip-range)
  - [greenpau/caddy-git](https://github.com/greenpau/caddy-git)
