@@ -51,9 +51,11 @@ Keep `/data` on a persistent volume: it holds your TLS certificates and keys. To
 
 | Tag | Meaning |
 |-----|---------|
-| `latest`, `2`, `2.11`, `2.11.3` | The latest release, and the latest release in each major or minor line |
+| `latest`, `2`, `2.11`, `2.11.3` | The latest release, and the latest release in each major or minor line. These tags get updated base images (see below). |
 | `2.11.3-1` | A re-release of the same Caddy version with updated modules |
-| `2.11.3-YYYYMMDD` | A weekly rebuild of the latest release on a fresh base image, with the same modules. Release tags don't move; pin a dated tag to get base image security fixes between releases. |
+| `2.11.3-YYYYMMDD` | A fixed snapshot of a release, built on that date. It never changes, so pin it if you need a reproducible image. |
+
+Every week, CI checks whether the official `caddy` builder or Alpine base image for the latest release has been updated upstream, for example with Go or Alpine security fixes. If so, it rebuilds that release with the same modules, pushes it again under its version tags (`2.11.3`, `2.11`, `2`, `latest`) and adds a new dated tag. If nothing changed, nothing is pushed. Older releases are not rebuilt.
 | `main` | Built from the `main` branch |
 | `sha-<commit>` | Built from a specific commit |
 

@@ -10,9 +10,14 @@ on:
     branches:
       - 'main'
   schedule:
-    # Weekly rebuild of the latest release to pick up base image fixes.
+    # Weekly refresh of the latest release on updated base images.
     - cron: '17 3 * * 1'
   workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild and push even if the base images are unchanged
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -24,16 +29,24 @@ concurrency:
 env:
   DOCKERHUB_IMAGE: docker.io/vnxme/caddy
   GHCR_IMAGE: ghcr.io/vnxme/caddy
-  # Scheduled and manual runs rebuild the latest release tag and push only
-  # a dated tag (e.g. 2.11.3-20261130); all other tags stay where they are.
+  # Scheduled and manual runs rebuild the latest release tag. They re-push its
+  # version tags (e.g. 2.11.3, 2.11, 2, latest) plus a fixed dated tag
+  # (e.g. 2.11.3-20261130), but only when a base image changed upstream.
   REBUILD: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+  BUILDER_DIGEST_LABEL: io.github.vnxme.docker-caddy.builder.digest
+  RUNTIME_DIGEST_LABEL: org.opencontainers.image.base.digest
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    outputs:
+      tag: ${{ steps.src.outputs.tag }}
+      dated-tag: ${{ steps.src.outputs.dated-tag }}
+      builder-image: ${{ steps.base.outputs.builder-image }}
+      builder-digest: ${{ steps.base.outputs.builder-digest }}
+      runtime-image: ${{ steps.base.outputs.runtime-image }}
+      runtime-digest: ${{ steps.base.outputs.runtime-digest }}
+      build: ${{ steps.base.outputs.build }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -47,8 +60,11 @@ jobs:
             tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*')
             git worktree add --detach release "$tag"
             echo "Rebuilding release $tag"
-            echo "context=release" >> "$GITHUB_OUTPUT"
-            echo "dated-tag=${tag#v}-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+            {
+              echo "tag=$tag"
+              echo "dated-tag=${tag#v}-$(date -u +%Y%m%d)"
+              echo "context=release"
+            } >> "$GITHUB_OUTPUT"
           else
             echo "context=." >> "$GITHUB_OUTPUT"
           fi
@@ -57,13 +73,74 @@ jobs:
         if: env.REBUILD != 'true'
         run: sh .github/scripts/check-readme.sh
 
+      - name: Check base images
+        id: base
+        env:
+          CONTEXT: ${{ steps.src.outputs.context }}
+          TAG: ${{ steps.src.outputs.tag }}
+          FORCE: ${{ inputs.force == true }}
+        run: |
+          caddy_version=$(sed -n 's/^ARG CADDY_VERSION=//p' "$CONTEXT/Dockerfile")
+          if [ -z "$caddy_version" ]; then
+            echo "::error::No CADDY_VERSION ARG in $CONTEXT/Dockerfile. Release $TAG predates this workflow; cut a new release."
+            exit 1
+          fi
+          builder_image="docker.io/library/caddy:${caddy_version}-builder"
+          runtime_image="docker.io/library/caddy:${caddy_version}-alpine"
+          builder_digest=$(docker buildx imagetools inspect "$builder_image" --format '{{.Manifest.Digest}}')
+          runtime_digest=$(docker buildx imagetools inspect "$runtime_image" --format '{{.Manifest.Digest}}')
+          echo "Builder: $builder_image@$builder_digest"
+          echo "Runtime: $runtime_image@$runtime_digest"
+
+          build=true
+          if [ "$REBUILD" = "true" ] && [ "$FORCE" != "true" ]; then
+            published="$DOCKERHUB_IMAGE:${TAG#v}"
+            labels=$(docker buildx imagetools inspect "$published" \
+              --format '{{json (index .Image "linux/amd64").Config.Labels}}' 2>/dev/null || echo '{}')
+            prev_builder=$(echo "$labels" | jq -r --arg k "$BUILDER_DIGEST_LABEL" '.[$k] // empty')
+            prev_runtime=$(echo "$labels" | jq -r --arg k "$RUNTIME_DIGEST_LABEL" '.[$k] // empty')
+            echo "Published $published was built from builder ${prev_builder:-<unknown>}, runtime ${prev_runtime:-<unknown>}"
+            if [ "$prev_builder" = "$builder_digest" ] && [ "$prev_runtime" = "$runtime_digest" ]; then
+              build=false
+              echo "::notice::Base images unchanged since $published was pushed; nothing to rebuild."
+            fi
+          fi
+
+          {
+            echo "builder-image=$builder_image"
+            echo "builder-digest=$builder_digest"
+            echo "runtime-image=$runtime_image"
+            echo "runtime-digest=$runtime_digest"
+            echo "build=$build"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ needs.prepare.outputs.tag }}
+      CONTEXT: ${{ needs.prepare.outputs.tag && 'release' || '.' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check out release
+        if: env.TAG != ''
+        run: git worktree add --detach release "$TAG"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Build test image (linux/amd64)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ steps.src.outputs.context }}
+          context: ${{ env.CONTEXT }}
           platforms: linux/amd64
           pull: true
           load: true
@@ -72,12 +149,12 @@ jobs:
           cache-from: type=gha
 
       - name: Smoke test
-        run: sh .github/scripts/smoke-test.sh caddy:test "${{ steps.src.outputs.context }}/Dockerfile"
+        run: sh .github/scripts/smoke-test.sh caddy:test "$CONTEXT/Dockerfile"
 
       - name: Build test binary (linux/arm/v6)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ steps.src.outputs.context }}
+          context: ${{ env.CONTEXT }}
           platforms: linux/arm/v6
           pull: true
           provenance: false
@@ -94,14 +171,21 @@ jobs:
           images: |
             ${{ env.DOCKERHUB_IMAGE }}
             ${{ env.GHCR_IMAGE }}
+          # On rebuilds, value= points the semver tags at the release being
+          # rebuilt; otherwise it is empty and they follow the pushed git tag.
           tags: |
             type=ref,event=branch,enable=${{ env.REBUILD != 'true' }}
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+            type=semver,pattern={{major}},value=${{ env.TAG }}
             type=sha,enable=${{ env.REBUILD != 'true' }}
-            type=raw,value=${{ steps.src.outputs.dated-tag }},enable=${{ env.REBUILD == 'true' }}
+            type=raw,value=${{ needs.prepare.outputs.dated-tag }},enable=${{ env.REBUILD == 'true' }}
+          # Recorded so the weekly rebuild can tell whether a base image changed.
+          labels: |
+            ${{ env.BUILDER_DIGEST_LABEL }}=${{ needs.prepare.outputs.builder-digest }}
+            org.opencontainers.image.base.name=${{ needs.prepare.outputs.runtime-image }}
+            ${{ env.RUNTIME_DIGEST_LABEL }}=${{ needs.prepare.outputs.runtime-digest }}
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
@@ -123,7 +207,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ steps.src.outputs.context }}
+          context: ${{ env.CONTEXT }}
           platforms: |
             linux/amd64
             linux/arm/v6
