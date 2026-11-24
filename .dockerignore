@@ -1,0 +1,3 @@
+# The image is built from the Dockerfile alone; keep the build context empty.
+*
+!Dockerfile
