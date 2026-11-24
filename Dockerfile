@@ -2,7 +2,7 @@
 
 # Single source of truth for the Caddy version: it selects both base images
 # and the Caddy release that xcaddy builds. Updated by Renovate.
-ARG CADDY_VERSION=2.11.3
+ARG CADDY_VERSION=2.11.9
 
 FROM --platform=$BUILDPLATFORM caddy:${CADDY_VERSION}-builder AS builder
 ARG TARGETOS TARGETARCH TARGETVARIANT
