@@ -1,0 +1,55 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "Etc/UTC",
+  "automerge": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Caddy version; selects both base images and the Caddy release built by xcaddy",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["ARG CADDY_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "caddy",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Caddy modules pinned to commits on their default branch",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["--with (?<depName>github\\.com/[^/\\s]+/[^/@\\s]+)(/v\\d+)?@(?<currentDigest>[0-9a-f]{40})"],
+      "packageNameTemplate": "https://{{{depName}}}",
+      "datasourceTemplate": "git-refs"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "FROM lines use the CADDY_VERSION ARG, which the custom manager above updates",
+      "matchManagers": ["dockerfile"],
+      "enabled": false
+    },
+    {
+      "description": "One weekly PR for all module bumps",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["git-refs"],
+      "groupName": "Caddy modules",
+      "commitMessageTopic": "Caddy modules",
+      "schedule": ["* 0-5 * * 1"]
+    },
+    {
+      "description": "One weekly PR for all GitHub Actions bumps",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "schedule": ["* 0-5 * * 1"]
+    },
+    {
+      "description": "Caddy version bumps get their own PR, opened as soon as a release appears",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["caddy"],
+      "commitMessageTopic": "Caddy"
+    }
+  ]
+}
