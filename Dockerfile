@@ -1,9 +1,21 @@
-FROM --platform=$BUILDPLATFORM caddy:builder AS builder
-ARG TARGETOS TARGETARCH
+# syntax=docker/dockerfile:1
+
+# Single source of truth for the Caddy version: it selects both base images
+# and the Caddy release that xcaddy builds. Updated by Renovate.
+ARG CADDY_VERSION=2.11.3
+
+FROM --platform=$BUILDPLATFORM caddy:${CADDY_VERSION}-builder AS builder
+ARG TARGETOS TARGETARCH TARGETVARIANT
+ENV CGO_ENABLED=0
+# xcaddy builds the release named by the builder image's own CADDY_VERSION
+# env (e.g. v2.11.3), which always matches the image tag selected above.
 RUN \
   --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg \
-  GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build v2.11.3 \
+  # Go defaults to GOARM=7 when cross-compiling, so pass the variant
+  # explicitly or linux/arm/v6 would get an ARMv7 binary.
+  if [ "$TARGETARCH" = "arm" ]; then export GOARM="${TARGETVARIANT#v}"; fi; \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build \
   --with github.com/abiosoft/caddy-exec@521d8736cb4d1ce7f5b8bf8be6f3a2c9ecad843c \
   --with github.com/aksdb/caddy-cgi/v2@8c1c76069394f05a44fb99a91b792d7f6b18e66b \
   --with github.com/caddy-dns/cloudflare@a8737d095ad5a48ca031cea6ab704057dbc2d250 \
@@ -20,5 +32,5 @@ RUN \
   --with github.com/mholt/caddy-webdav@fa2f366b0d75e54c2e381c0aefc3a8df8bf5794b \
   --with github.com/WeidiDeng/caddy-cloudflare-ip@f53b62aa13cb7ad79c8b47aacc3f2f03989b67e5
 
-FROM caddy:latest
+FROM caddy:${CADDY_VERSION}-alpine
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
